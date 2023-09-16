@@ -1,2 +1,3 @@
-# xcp
-xxx c++ compiler
+# xcp - xxx c++ compiler
+
+(c) 2023-, Mura. All rights reserved.
