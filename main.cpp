@@ -132,7 +132,7 @@ check_arguments(arguments_t const& args) {
 
 	// -----------------------------------
 	// This program does not support standard input pipe.
-	auto const pipe		   = args | std::views::all | std::views::filter([](auto const& a) { return a == "-"; }) | std::views::common;
+	auto const pipe		   = args | std::views::filter([](auto const& a) { return a == "-"; }) | std::views::common;
 	auto const pipe_errors = impl::empty(pipe) ? success : unsupported_input_pipe_message;
 
 	// -----------------------------------
@@ -149,7 +149,7 @@ check_arguments(arguments_t const& args) {
 		};
 	};
 
-	auto const_ options			= args | std::views::all | std::views::filter([](auto const& a) { return a.starts_with("-") && ! std::filesystem::exists(a); }) | std::views::transform(parse_option) | std::views::common;
+	auto const_ options			= args | std::views::filter([](auto const& a) { return a.starts_with("-") && ! std::filesystem::exists(a); }) | std::views::transform(parse_option) | std::views::common;
 	auto const_ invalid_options = options | std::views::filter([](auto const& a) { return a.first.empty(); }) | std::views::common;
 	auto const	option_errors	= impl::empty(invalid_options) ? success : impl::to<messages_t>(invalid_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.second; }) | std::views::common);
 	auto const	show_only		= ! impl::empty(options | std::views::filter([&usage_options](auto const& a) { return usage_options.contains(a.first); }) | std::views::common);
@@ -158,7 +158,7 @@ check_arguments(arguments_t const& args) {
 
 	// -----------------------------------
 	// Collects source file paths.
-	auto const_ sources		   = args | std::views::all | std::views::filter([](auto const& a) { return ! a.starts_with("-") || std::filesystem::exists(a); }) | std::views::transform([](auto const& a) { return std::filesystem::path{a}; }) | std::views::common;
+	auto const_ sources		   = args | std::views::filter([](auto const& a) { return ! a.starts_with("-") || std::filesystem::exists(a); }) | std::views::transform([](auto const& a) { return std::filesystem::path{a}; }) | std::views::common;
 	auto const	source_missing = sources | std::views::filter([](auto const& a) { return ! std::filesystem::exists(a); }) | std::views::common;
 	auto const	source_errors  = (impl::empty(sources) && ! show_only) //
 								   ? no_input_file_message
