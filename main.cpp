@@ -134,9 +134,9 @@ check_arguments(arguments_t const& args) {
 	// Collects options.
 	auto const parse_option = [](std::string_view const& a) -> options_t::value_type {
 		// Format: --opt, -opt, --opt=value, -opt=value, --opt:value, -opt:value
-		std::regex const re{R"(^(--?[A-Za-z0-9_-]+)(?:[=:](.*))$)"};
+		std::regex const re{R"(^(--?[A-Za-z0-9_-]+)(?:[=:](.+))?$)"};
 		if (std::match_results<std::string_view::const_iterator> match; std::regex_match(std::ranges::cbegin(a), std::ranges::cend(a), match, re)) {
-			return (match.size() == 2) //
+			return (2 < match.size()) //
 					 ? std::make_pair(std::string{match.str(1)}, std::string{match.str(2)})
 					 : std::make_pair(std::string{match.str(1)}, std::string{});
 		} else {
