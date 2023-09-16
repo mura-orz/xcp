@@ -233,7 +233,7 @@ main(int ac, char* av[]) {
 			// TODO:
 
 			auto const ended = std::chrono::steady_clock::now();
-			std::clog << xxx::msg::Completed << ":" << std::chrono::duration_cast<std::chrono::milliseconds>(ended - started).count() << " sec." << std::endl;
+			std::clog << xxx::msg::Completed << ":" << std::chrono::duration_cast<std::chrono::milliseconds>(ended - started).count() << "ms." << std::endl;
 		}
 		return 0;
 
