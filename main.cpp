@@ -129,6 +129,7 @@ check_arguments(arguments_t const& args) {
 	messages_t const						   no_input_file_message		  = {msg::err::No_input_file};
 	messages_t const						   no_such_input_file_message	  = {msg::err::No_such_input_file};
 	std::unordered_set<std::string_view> const usage_options				  = {"-h", "--help", "-v", "--version"};
+	std::unordered_set<std::string_view> const valid_options				  = {"-h", "--help", "-v", "--version", "-D", "-l", "-I", "-L"};
 
 	// -----------------------------------
 	// This program does not support standard input pipe.
@@ -149,11 +150,12 @@ check_arguments(arguments_t const& args) {
 		};
 	};
 
-	auto const_ options			= args | std::views::filter([](auto const& a) { return a.starts_with("-") && ! std::filesystem::exists(a); }) | std::views::transform(parse_option) | std::views::common;
-	auto const_ invalid_options = options | std::views::filter([](auto const& a) { return a.first.empty(); }) | std::views::common;
-	auto const	option_errors	= impl::empty(invalid_options) ? success : impl::to<messages_t>(invalid_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.second; }) | std::views::common);
-	auto const	show_only		= ! impl::empty(options | std::views::filter([&usage_options](auto const& a) { return usage_options.contains(a.first); }) | std::views::common);
-
+	auto const_ options				  = args | std::views::filter([](auto const& a) { return a.starts_with("-") && ! std::filesystem::exists(a); }) | std::views::transform(parse_option) | std::views::common;
+	auto const_ invalid_options		  = options | std::views::filter([](auto const& a) { return a.first.empty(); }) | std::views::common;
+	auto const_ unknown_options		  = options | std::views::filter([&valid_options](auto const& a) { return ! valid_options.contains(a.first); }) | std::views::common;
+	auto const	invalid_option_errors = impl::empty(invalid_options) ? success : impl::to<messages_t>(invalid_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.second; }) | std::views::common);
+	auto const	unknown_option_errors = impl::empty(unknown_options) ? success : impl::to<messages_t>(unknown_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.first; }) | std::views::common);
+	auto const	show_only			  = ! impl::empty(options | std::views::filter([&usage_options](auto const& a) { return usage_options.contains(a.first); }) | std::views::common);
 	// TODO: option_errors
 
 	// -----------------------------------
@@ -168,7 +170,7 @@ check_arguments(arguments_t const& args) {
 
 	// -----------------------------------
 	// Collects errors.
-	auto const errors = std::vector{pipe_errors, option_errors, source_errors} | std::views::join;
+	auto const errors = std::vector{pipe_errors, invalid_option_errors, unknown_option_errors, source_errors} | std::views::join;
 	auto const result = show_only //
 						  ? 1
 						  : impl::empty(errors) //
