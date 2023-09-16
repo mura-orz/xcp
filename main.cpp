@@ -66,7 +66,7 @@ static constexpr auto const Completed = "Done."sv;
 namespace err {
 using namespace std::string_literals;
 
-static auto const Unsupported_input_pipe = "Standard input pipe is unsupported."s;
+static auto const Unsupported_input_pipe = "Input pipe is unsupported."s;
 static auto const Invalid_arguments		 = "Invalid argument(s) appeared."s;
 static auto const Invalid_option		 = "Invalid option:"s;
 static auto const No_input_file			 = "No input file exists."s;
@@ -150,7 +150,7 @@ check_arguments(arguments_t const& args) {
 		};
 	};
 
-	auto const_ options				  = args | std::views::filter([](auto const& a) { return a.starts_with("-") && ! std::filesystem::exists(a); }) | std::views::transform(parse_option) | std::views::common;
+	auto const_ options				  = args | std::views::filter([](auto const& a) { return a != "-" && a.starts_with("-") && ! std::filesystem::exists(a); }) | std::views::transform(parse_option) | std::views::common;
 	auto const_ invalid_options		  = options | std::views::filter([](auto const& a) { return a.first.empty(); }) | std::views::common;
 	auto const_ unknown_options		  = options | std::views::filter([&valid_options](auto const& a) { return ! valid_options.contains(a.first); }) | std::views::common;
 	auto const	invalid_option_errors = impl::empty(invalid_options) ? success : impl::to<messages_t>(invalid_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.second; }) | std::views::common);
@@ -170,12 +170,13 @@ check_arguments(arguments_t const& args) {
 
 	// -----------------------------------
 	// Collects errors.
-	auto const errors = std::vector{pipe_errors, invalid_option_errors, unknown_option_errors, source_errors} | std::views::join;
-	auto const result = show_only //
-						  ? 1
-						  : impl::empty(errors) //
-								? 0
-								: -1;
+	auto const nested_errors = std::vector{pipe_errors, invalid_option_errors, unknown_option_errors, source_errors};
+	auto const errors		 = nested_errors | std::views::join | std::views::common;
+	auto const result		 = show_only //
+								 ? 1
+								 : impl::empty(errors) //
+									   ? 0
+									   : -1;
 
 	return std::make_tuple(result, impl::to<options_t>(options), impl::to<paths_t>(sources), impl::to<messages_t>(errors));
 }
