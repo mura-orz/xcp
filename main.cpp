@@ -120,18 +120,16 @@ using options_t	  = std::unordered_multimap<std::string, std::string>; ///< @bri
 using messages_t  = std::unordered_set<std::string>;				   ///< @brief Type of error messages.
 
 /// @brief Checks program arguments as options and source paths.
-/// @param[in] argmentss     Program arguments.
+/// @param[in] args     Program arguments.
 /// @return Tuple of program arguments as options, source paths, and error messages.
 std::tuple<int, options_t, paths_t, messages_t>
-check_arguments(arguments_t const& argments) {
+check_arguments(arguments_t const& args) {
 	messages_t const						   success;
 	messages_t const						   unsupported_input_pipe_message = {msg::err::Unsupported_input_pipe};
 	messages_t const						   no_input_file_message		  = {msg::err::No_input_file};
 	messages_t const						   no_such_input_file_message	  = {msg::err::No_such_input_file};
 	std::unordered_set<std::string_view> const usage_options				  = {"-h", "--help", "-v", "--version"};
 	std::unordered_set<std::string_view> const valid_options				  = {"-h", "--help", "-v", "--version", "-D", "-l", "-I", "-L"};
-
-	auto args = argments | std::views::all;
 
 	// -----------------------------------
 	// This program does not support standard input pipe.
