@@ -81,8 +81,8 @@ namespace impl {
 template<typename Y, typename T>
 constexpr inline Y
 to(T const& a) {
-	using ct = std::remove_reference<decltype(a)>::type;
-	using t	 = std::remove_const<ct>::type;
+	using ct = typename std::remove_reference<decltype(a)>::type;
+	using t	 = typename std::remove_const<ct>::type;
 	auto& aa = const_cast<t&>(a);
 	return Y(aa.begin(), aa.end());
 }
@@ -155,7 +155,7 @@ check_arguments(arguments_t const& args) {
 	// Collects source file paths.
 	auto /*const*/ sources		  = args | std::views::filter([](auto const& a) { return ! a.starts_with("-") || std::filesystem::exists(a); }) | std::views::transform([](auto const& a) { return std::filesystem::path{a}; }) | std::views::common;
 	auto const	   source_missing = sources | std::views::filter([](auto const& a) { return ! std::filesystem::exists(a); }) | std::views::common;
-	auto const	   source_errors  = impl::empty(sources) && ! show_only //
+	auto const	   source_errors  = (impl::empty(sources) && ! show_only) //
 									  ? no_input_file_message
 									  : impl::empty(source_missing) //
 											? success
