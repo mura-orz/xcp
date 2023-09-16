@@ -91,17 +91,15 @@ to(T const& a) {
 ///	@tparam T	Type of the @p a container.
 ///	@param[in]	a	Container or view.
 /// @return It returns true if it is empty.
-/// @note   TODO: This is workaround for gcc.
 template<typename T>
 constexpr inline bool
 empty(T const& a) {
-#if defined(__GNUC__) // TODO: This is workaround for gcc.
-	// TODO: The empty() of std::ranges::filter_view of libstdc++ is not const method.
-	using ct = typename ::remove_reference<decltype(a)>::type;
+	using ct = typename std::remove_reference<decltype(a)>::type;
 	using t	 = typename std::remove_const<ct>::type;
+#if defined(__GNUC__) // TODO: This is workaround for gcc.
 	return const_cast<t&>(a).empty();
 #else
-	return std::ranges::empty(a);
+	return std::ranges::empty(const_cast<t&>(a));
 #endif
 }
 
