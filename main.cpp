@@ -23,6 +23,13 @@
 #include <vector>
 
 // ===========================================================================
+
+#ifndef const_
+///	@brief	const macro.
+#define const_ /*const*/
+#endif
+
+// ===========================================================================
 /// @brief The root namespace of xxx.
 namespace xxx {
 
@@ -142,22 +149,22 @@ check_arguments(arguments_t const& args) {
 		};
 	};
 
-	auto /*const*/ options		   = args | std::views::filter([](auto const& a) { return a.starts_with("-") && ! std::filesystem::exists(a); }) | std::views::transform(parse_option) | std::views::common;
-	auto /*const*/ invalid_options = options | std::views::filter([](auto const& a) { return a.first.empty(); }) | std::views::common;
-	auto const	   option_errors   = impl::empty(invalid_options) ? success : impl::to<messages_t>(invalid_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.second; }) | std::views::common);
-	auto const	   show_only	   = ! impl::empty(options | std::views::filter([&usage_options](auto const& a) { return usage_options.contains(a.first); }) | std::views::common);
+	auto const_ options			= args | std::views::filter([](auto const& a) { return a.starts_with("-") && ! std::filesystem::exists(a); }) | std::views::transform(parse_option) | std::views::common;
+	auto const_ invalid_options = options | std::views::filter([](auto const& a) { return a.first.empty(); }) | std::views::common;
+	auto const	option_errors	= impl::empty(invalid_options) ? success : impl::to<messages_t>(invalid_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.second; }) | std::views::common);
+	auto const	show_only		= ! impl::empty(options | std::views::filter([&usage_options](auto const& a) { return usage_options.contains(a.first); }) | std::views::common);
 
 	// TODO: option_errors
 
 	// -----------------------------------
 	// Collects source file paths.
-	auto /*const*/ sources		  = args | std::views::filter([](auto const& a) { return ! a.starts_with("-") || std::filesystem::exists(a); }) | std::views::transform([](auto const& a) { return std::filesystem::path{a}; }) | std::views::common;
-	auto const	   source_missing = sources | std::views::filter([](auto const& a) { return ! std::filesystem::exists(a); }) | std::views::common;
-	auto const	   source_errors  = (impl::empty(sources) && ! show_only) //
-									  ? no_input_file_message
-									  : impl::empty(source_missing) //
-											? success
-											: no_such_input_file_message;
+	auto const_ sources		   = args | std::views::filter([](auto const& a) { return ! a.starts_with("-") || std::filesystem::exists(a); }) | std::views::transform([](auto const& a) { return std::filesystem::path{a}; }) | std::views::common;
+	auto const	source_missing = sources | std::views::filter([](auto const& a) { return ! std::filesystem::exists(a); }) | std::views::common;
+	auto const	source_errors  = (impl::empty(sources) && ! show_only) //
+								   ? no_input_file_message
+								   : impl::empty(source_missing) //
+										 ? success
+										 : no_such_input_file_message;
 
 	// -----------------------------------
 	// Collects errors.
@@ -168,7 +175,7 @@ check_arguments(arguments_t const& args) {
 								? 0
 								: -1;
 
-	return {result, impl::to<options_t>(options), impl::to<paths_t>(sources), impl::to<messages_t>(errors)};
+	return std::make_tuple(result, impl::to<options_t>(options), impl::to<paths_t>(sources), impl::to<messages_t>(errors));
 }
 
 } // namespace xxx
