@@ -5,9 +5,11 @@
 /// @copyright (c) 2023-, Mura.
 // ===========================================================================
 
+// Includes local headers.
+#include "utility.hpp"
+
 // Includes standard headers.
 #include <string_view>
-#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
@@ -21,24 +23,31 @@
 #include <string>
 #include <tuple>
 #include <vector>
+// TODO: Several implementation have not supported <format> yet.
 
 // ===========================================================================
 
-#ifndef const_
-///	@brief	const macro.
-#define const_ /*const*/
-#endif
+///	@brief	Message of xcp.
+namespace xxx::msg {
+}
+
+///	@brief	Error message of xcp.
+namespace xxx::msg::err {
+}
+
+///	@brief	Implemantation of xcp.
+namespace xxx::impl {
+}
 
 // ===========================================================================
-/// @brief The root namespace of xxx.
 namespace xxx {
 
 // -----------------------------------
-/// @brief Messages.
+/// @brief	Messages.
 namespace msg {
 using namespace std::string_view_literals;
 
-/// @brief Title of this program.
+/// @brief	Title of this program.
 static constexpr auto const Title =
 	"=============================\n"
 	" xcp - xxx c++ compiler      \n"
@@ -46,7 +55,7 @@ static constexpr auto const Title =
 	" v0.2.0.0   - (c)2023-, Mura \n"
 	"=============================\n"sv;
 
-/// @brief Usage of this program.
+/// @brief	Usage of this program.
 static constexpr auto const Usage =
 	"[Usage] $ xcp.exe  (options)  {source_files}\n"
 	"[Options]\n"
@@ -58,11 +67,11 @@ static constexpr auto const Usage =
 	" -I{header_path} :          Set search path of includes.\n"
 	" -L{linker_path} :          Set search path of libraries.\n"sv;
 
-/// @brief This program completes successfully.
+/// @brief	This program completes successfully.
 static constexpr auto const Completed = "Done."sv;
 
 // -----------------------------------
-/// @brief Error messages.
+/// @brief	Error messages.
 namespace err {
 using namespace std::string_literals;
 
@@ -79,49 +88,14 @@ static auto const Unexpected			 = "Unexpected exception occurred."s;
 // -----------------------------------
 namespace impl {
 
-/// @brief Converts a view to container.
-///	@tparam Y	Type of outputt container.
-///	@tparam T	Type of input view.
-///	@param[in]	a	Container.
-/// @return It returns true if the container is empty.
-/// @note   TODO: This is workaround for C++20 or older. C++23 or newer has std::ranges::to.
-template<typename Y, typename T>
-constexpr inline Y
-to(T const& a) {
-	using ct = typename std::remove_reference<decltype(a)>::type;
-	using t	 = typename std::remove_const<ct>::type;
-	auto& aa = const_cast<t&>(a);
-	return Y(aa.begin(), aa.end());
-}
-
-/// @brief Gets whether container orr view is empty or not.
-///	@tparam T	Type of the @p a container.
-///	@param[in]	a	Container or view.
-/// @return It returns true if it is empty.
-template<typename T>
-constexpr inline bool
-empty(T const& a) {
-	using ct = typename std::remove_reference<decltype(a)>::type;
-	using t	 = typename std::remove_const<ct>::type;
-#if defined(__GNUC__) // TODO: This is workaround for gcc.
-	return const_cast<t&>(a).empty();
-#else
-	return std::ranges::empty(const_cast<t&>(a));
-#endif
-}
-
-} // namespace impl
-
-// -----------------------------------
-
 using arguments_t = std::vector<std::string_view>;					   ///< @brief Type of program arguments.
 using paths_t	  = std::unordered_set<std::filesystem::path>;		   ///< @brief Type of source file paths.
 using options_t	  = std::unordered_multimap<std::string, std::string>; ///< @brief Type of options.
 using messages_t  = std::unordered_set<std::string>;				   ///< @brief Type of error messages.
 
-/// @brief Checks program arguments as options and source paths.
-/// @param[in] args     Program arguments.
-/// @return Tuple of program arguments as options, source paths, and error messages.
+/// @brief	Checks program arguments as options and source paths.
+/// @param[in]	args     Program arguments.
+/// @return		Tuple of program arguments as options, source paths, and error messages.
 std::tuple<int, options_t, paths_t, messages_t>
 check_arguments(arguments_t const& args) {
 	messages_t const						   success;
@@ -134,7 +108,7 @@ check_arguments(arguments_t const& args) {
 	// -----------------------------------
 	// This program does not support standard input pipe.
 	auto const pipe		   = args | std::views::filter([](auto const& a) { return a == "-"; }) | std::views::common;
-	auto const pipe_errors = impl::empty(pipe) ? success : unsupported_input_pipe_message;
+	auto const pipe_errors = util::empty(pipe) ? success : unsupported_input_pipe_message;
 
 	// -----------------------------------
 	// Collects options.
@@ -153,18 +127,18 @@ check_arguments(arguments_t const& args) {
 	auto const_ options				  = args | std::views::filter([](auto const& a) { return a != "-" && a.starts_with("-") && ! std::filesystem::exists(a); }) | std::views::transform(parse_option) | std::views::common;
 	auto const_ invalid_options		  = options | std::views::filter([](auto const& a) { return a.first.empty(); }) | std::views::common;
 	auto const_ unknown_options		  = options | std::views::filter([&valid_options](auto const& a) { return ! valid_options.contains(a.first); }) | std::views::common;
-	auto const	invalid_option_errors = impl::empty(invalid_options) ? success : impl::to<messages_t>(invalid_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.second; }) | std::views::common);
-	auto const	unknown_option_errors = impl::empty(unknown_options) ? success : impl::to<messages_t>(unknown_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.first; }) | std::views::common);
-	auto const	show_only			  = ! impl::empty(options | std::views::filter([&usage_options](auto const& a) { return usage_options.contains(a.first); }) | std::views::common);
+	auto const	invalid_option_errors = util::empty(invalid_options) ? success : util::to<messages_t>(invalid_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.second; }) | std::views::common);
+	auto const	unknown_option_errors = util::empty(unknown_options) ? success : util::to<messages_t>(unknown_options | std::views::transform([](auto const& a) { return msg::err::Invalid_option + a.first; }) | std::views::common);
+	auto const	show_only			  = ! util::empty(options | std::views::filter([&usage_options](auto const& a) { return usage_options.contains(a.first); }) | std::views::common);
 	// TODO: option_errors
 
 	// -----------------------------------
 	// Collects source file paths.
 	auto const_ sources		   = args | std::views::filter([](auto const& a) { return ! a.starts_with("-") || std::filesystem::exists(a); }) | std::views::transform([](auto const& a) { return std::filesystem::path{a}; }) | std::views::common;
 	auto const	source_missing = sources | std::views::filter([](auto const& a) { return ! std::filesystem::exists(a); }) | std::views::common;
-	auto const	source_errors  = (impl::empty(sources) && ! show_only) //
+	auto const	source_errors  = (util::empty(sources) && ! show_only) //
 								   ? no_input_file_message
-								   : impl::empty(source_missing) //
+								   : util::empty(source_missing) //
 										 ? success
 										 : no_such_input_file_message;
 
@@ -174,18 +148,19 @@ check_arguments(arguments_t const& args) {
 	auto const errors		 = nested_errors | std::views::join | std::views::common;
 	auto const result		 = show_only //
 								 ? 1
-								 : impl::empty(errors) //
+								 : util::empty(errors) //
 									   ? 0
 									   : -1;
 
-	return std::make_tuple(result, impl::to<options_t>(options), impl::to<paths_t>(sources), impl::to<messages_t>(errors));
+	return std::make_tuple(result, util::to<options_t>(options), util::to<paths_t>(sources), util::to<messages_t>(errors));
 }
 
+} // namespace impl
 } // namespace xxx
 
 // ===========================================================================
 
-/// @brief Initializes primitive language features.
+/// @brief	Initializes primitive language features.
 static inline void
 initialize_primitives() {
 	// -----------------------------------
@@ -218,15 +193,23 @@ main(int ac, char* av[]) {
 		// -----------------------------------
 		// Iniitializes this program.
 		initialize_primitives();
+
+		// -----------------------------------
+		// Initializes logger.
+		xxx::log::logger_t logger;
+		xxx::log::tracer_t tracer{logger};
+
 		std::clog << xxx::msg::Title << std::endl;
 
 		// -----------------------------------
 		// Checks arguments as options and source paths.
-		xxx::arguments_t const args(av + 1, av + ac);
-		auto const [result, options, paths, errors] = xxx::check_arguments(args);
+		xxx::impl::arguments_t const args(av + 1, av + ac);
+		auto const [result, options, paths, errors] = xxx::impl::check_arguments(args);
 		if (result != 0) {
 			if (0 < result) {
-				std::clog << xxx::msg::Usage << std::endl;
+				if (options.contains("-h") || options.contains("--help")) {
+					std::clog << xxx::msg::Usage << std::endl;
+				}
 			} else {
 				std::clog << xxx::msg::err::Invalid_arguments << std::endl;
 				std::ranges::for_each(errors, [](auto const& a) { std::clog << std::string(4, ' ') << a << std::endl; });

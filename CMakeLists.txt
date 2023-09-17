@@ -29,6 +29,7 @@ endif()
 find_package(Threads)
 add_executable(xcp
 		main.cpp
+		utility.hpp
 )
 target_include_directories(xcp	PRIVATE .)
 if(MSVC)
