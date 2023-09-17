@@ -47,6 +47,12 @@ namespace xxx::util {
 #include <tuple>
 #include <vector>
 
+#if ! __has_include(<source_location>) && ! __has_include(<experimental / source_location>)
+namespace std {
+using std::experimental::source_location;
+}
+#endif
+
 namespace xxx {
 
 // ===========================================================================
@@ -249,7 +255,7 @@ starts_bits_with(char ch, unsigned char bits, unsigned char mask) noexcept {
 
 /// @brief	Type of UTF-8 character.
 enum class type_t {
-	H1, ///< @brief	Head byte of a single character.
+	H1, ///< @brief	Head byte of a single-bytes character.
 	H2, ///< @brief	Head byte of tho-bytes character.
 	H3, ///< @brief	Head byte of three-bytes character.
 	H4, ///< @brief	Head byte of four-bytes character.
@@ -370,6 +376,20 @@ get_head_ucs32(std::string_view const& sv) {
 	default:
 		throw std::invalid_argument(std::string{sv.substr(0u, 1u)});
 	}
+}
+
+/// @brief	Converts UTF-8 string to UTF-32 string.
+///	@param[in]	str		UTF-8 string.
+///	@return		UTF-32 string.
+inline std::u32string
+to_32string(std::string_view const& str) {
+	std::basic_ostringstream<char32_t> oss;
+	for (auto s = str; ! s.empty();) {
+		auto const [rest, ch] = get_head_ucs32(s);
+		oss << ch;
+		s = rest;
+	}
+	return oss.str();
 }
 
 } // namespace uc
