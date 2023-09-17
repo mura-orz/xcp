@@ -55,13 +55,15 @@ using std::experimental::source_location;
 #elif ! defined(__cpp_lib_source_location)
 namespace std {
 struct source_location {
-	static consteval source_location current() noexcept { return source_location{}; }
+	static source_location current() noexcept;
 	constexpr source_location() noexcept {}
 	constexpr uint_least32_t line() const noexcept { return 0; }
 	constexpr uint_least32_t column() const noexcept { return 0; }
 	constexpr const char*	 file_name() const noexcept { return ""; }
 	constexpr const char*	 function_name() const noexcept { return ""; }
 };
+inline consteval source_location
+source_location::current() noexcept { return source_location{}; }
 } // namespace std
 #endif
 
@@ -319,27 +321,27 @@ get_type(char ch) noexcept {
 /// @param[in]	ch 	Character.
 /// @return 	Head of the single character, or invalid character.
 constexpr inline char32_t
-get_head1(char ch) noexcept { return is_head1(ch) ? ch : ~0uL; }
+get_head1(char ch) noexcept { return is_head1(ch) ? ch : static_cast<char32_t>(~0uL); }
 /// @brief	Gets character as trail of a character.
 /// @param[in]	ch 	Character.
 /// @return 	Trail of the character, or invalid character.
 constexpr inline char32_t
-get_trail(char ch) noexcept { return is_head1(ch) ? (ch & ~0b1100'0000) : ~0uL; }
+get_trail(char ch) noexcept { return is_head1(ch) ? (ch & ~0b1100'0000) : static_cast<char32_t>(~0uL); }
 /// @brief	Gets character as head of two-bytes character.
 /// @param[in]	ch 	Character.
 /// @return 	Head of the two-bytes character, or invalid character.
 constexpr inline char32_t
-get_head2(char ch) noexcept { return is_head2(ch) ? (ch & ~0b1110'0000) : ~0uL; }
+get_head2(char ch) noexcept { return is_head2(ch) ? (ch & ~0b1110'0000) : static_cast<char32_t>(~0uL); }
 /// @brief	Gets character as head of three-bytes character.
 /// @param[in]	ch 	Character.
 /// @return 	Head of the three-bytes character, or invalid character.
 constexpr inline char32_t
-get_head3(char ch) noexcept { return is_head3(ch) ? (ch & ~0b1111'0000) : ~0uL; }
+get_head3(char ch) noexcept { return is_head3(ch) ? (ch & ~0b1111'0000) : static_cast<char32_t>(~0uL); }
 /// @brief	Gets character as head of four-bytes character.
 /// @param[in]	ch 	Character.
 /// @return 	Head of the four-bytes character, or invalid character.
 constexpr inline char32_t
-get_head4(char ch) noexcept { return is_head4(ch) ? (ch & ~0b1111'1000) : ~0uL; }
+get_head4(char ch) noexcept { return is_head4(ch) ? (ch & ~0b1111'1000) : static_cast<char32_t>(~0uL); }
 /// @brief	Gets whether the @p ch is valid byte of UTF-8 character or not.
 /// @param[in]	ch 	Character.
 /// @return 	Whether the @p ch is valid byte of UTF-8 character or not.
