@@ -54,8 +54,9 @@ using std::experimental::source_location;
 }
 #elif ! defined(__cpp_lib_source_location)
 namespace std {
+// It is just a dummy.
 struct source_location {
-	static consteval source_location current() noexcept { return source_location(); }
+	static /*consteval*/ constexpr source_location current() noexcept { return source_location(); }
 	constexpr source_location() noexcept {}
 	constexpr uint_least32_t line() const noexcept { return 0; }
 	constexpr uint_least32_t column() const noexcept { return 0; }
