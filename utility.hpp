@@ -55,15 +55,13 @@ using std::experimental::source_location;
 #elif ! defined(__cpp_lib_source_location)
 namespace std {
 struct source_location {
-	static consteval source_location current() noexcept;
+	static consteval source_location current() noexcept { return source_location(); }
 	constexpr source_location() noexcept {}
 	constexpr uint_least32_t line() const noexcept { return 0; }
 	constexpr uint_least32_t column() const noexcept { return 0; }
 	constexpr const char*	 file_name() const noexcept { return ""; }
 	constexpr const char*	 function_name() const noexcept { return ""; }
 };
-inline consteval source_location
-source_location::current() noexcept { return source_location{}; }
 } // namespace std
 #endif
 
