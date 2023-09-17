@@ -47,11 +47,22 @@ namespace xxx::util {
 #include <tuple>
 #include <vector>
 
-#if ! __has_include(<source_location>) && ! __has_include(<experimental/source_location>)
+#if ! __has_include(<source_location>) && __has_include(<experimental/source_location>)
 #include <experimental/source_location>
 namespace std {
 using std::experimental::source_location;
 }
+#elif ! defined(__cpp_lib_source_location)
+namespace std {
+struct source_location {
+	static consteval source_location current() noexcept { return source_location{}; }
+	constexpr source_location() noexcept {}
+	constexpr uint_least32_t line() const noexcept { return 0; }
+	constexpr uint_least32_t column() const noexcept { return 0; }
+	constexpr const char*	 file_name() const noexcept { return ""; }
+	constexpr const char*	 function_name() const noexcept { return ""; }
+};
+} // namespace std
 #endif
 
 namespace xxx {
