@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+enable_testing()
 enable_language(CXX)
 set(CMAKE_CXX_STANDARD 20)	# Currently ranges feature requires c++latest instead of c++20.
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -26,10 +27,12 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic")
 endif()
 
+find_package(GTest)
 find_package(Threads)
 add_executable(xcp
-		main.cpp
-		utility.hpp
+	main.cpp
+	utility.hpp
+	lexer.hpp
 )
 target_include_directories(xcp	PRIVATE .)
 if(MSVC)
@@ -44,3 +47,15 @@ elseif(ANDK)
 endif()
 target_link_libraries(xcp	${CMAKE_THREAD_LIBS_INIT})
 
+if(GTest_FOUND)
+
+add_executable(xcp_ut
+	ut_lexer.cpp
+	utility.hpp
+	lexer.hpp
+)
+target_link_libraries(xcp_ut	GTest::gtest_main GTest::gtest)
+add_test(xcp_ut
+	COMMAND ./xcp_ut
+)
+endif()
