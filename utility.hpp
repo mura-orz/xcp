@@ -141,7 +141,8 @@ public:
 		oss << ">>> " << function_name(loc_) << "(";
 		if (! arguments.empty()) {
 			oss << arguments.at(0);
-			std::ranges::for_each(arguments | std::views::drop(1), [&oss](auto const& a) { oss << ", " << a; });
+			auto const following = arguments | std::views::drop(1);
+			std::ranges::for_each(following, [&oss](auto const& a) { oss << ", " << a; });
 		}
 		oss << ")";
 		logger_(level_, oss.str(), loc_);
@@ -152,7 +153,8 @@ public:
 		oss << ">>> " << function_name(loc_) << "(";
 		if (! arguments.empty()) {
 			oss << arguments.at(0);
-			std::ranges::for_each(arguments | std::views::drop(1), [&oss](auto const& a) { oss << ", " << a; });
+			auto const following = arguments | std::views::drop(1);
+			std::ranges::for_each(following, [&oss](auto const& a) { oss << ", " << a; });
 		}
 		oss << ")";
 		logger_(level_, oss.str(), loc_);
