@@ -47,6 +47,11 @@ namespace xxx::util {
 #include <tuple>
 #include <vector>
 
+#ifndef const_
+///	@brief	immutable marcker for non-const types.
+#define const_ /*const*/
+#endif
+
 #if ! __has_include(<source_location>) && __has_include(<experimental/source_location>)
 #include <experimental/source_location>
 namespace std {
@@ -141,7 +146,7 @@ public:
 		oss << ">>> " << function_name(loc_) << "(";
 		if (! arguments.empty()) {
 			oss << arguments.at(0);
-			auto const following = arguments | std::views::drop(1);
+			auto const_ following = arguments | std::views::drop(1);
 			std::ranges::for_each(following, [&oss](auto const& a) { oss << ", " << a; });
 		}
 		oss << ")";
@@ -153,7 +158,7 @@ public:
 		oss << ">>> " << function_name(loc_) << "(";
 		if (! arguments.empty()) {
 			oss << arguments.at(0);
-			auto const following = arguments | std::views::drop(1);
+			auto const_ following = arguments | std::views::drop(1);
 			std::ranges::for_each(following, [&oss](auto const& a) { oss << ", " << a; });
 		}
 		oss << ")";
@@ -493,11 +498,6 @@ empty(T const& a) {
 
 /// @brief	Regex result for std::string_view.
 using svmatch = std::match_results<std::string_view::const_iterator>;
-
-#ifndef const_
-///	@brief	immutable marcker for non-const types.
-#define const_ /*const*/
-#endif
 
 } // namespace xxx
 
