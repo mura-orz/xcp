@@ -161,12 +161,13 @@ std::unordered_set<std::string_view> const keywords{
 //	@brief	One or more new lines (LF+).
 //	@note	VC++ does not support multiline.
 // std::regex const newline_re{R"(^(?:\r?\n)+.*)", std::regex_constants::multiline};
+//	@brief	Multiple-lines comment (/*...*/).
+//	@note	VC++ does not support multiline.
+// std::regex const block_comment_re{R"(^(/[*](?:[^*]|[*][^/]|^|$|[\r\n])*[*]/).*)", std::regex_constants::multiline};
 ///	@brief	Escaped new line (@\LF).
 std::regex const escaped_newline_re{R"(\\\r?\n)"};
 ///	@brief	Single-line comment (//... LF+).
 std::regex const line_comment_re{R"(^(//[^\r\n]*).*)"};
-///	@brief	Multiple-lines comment (/*...*/).
-std::regex const block_comment_re{R"(^(/[*](?:[^*]|[*][^/]|^|$|[\r\n])*[*]/).*)", std::regex_constants::multiline};
 ///	@brief	Inline whitespaces (WS+).
 std::regex const inline_whitespaces_re{R"(^([ \t\v\f]+).*)"};
 ///	@brief	Identifier ([A-Za-z_][A-Za-z0-9_]*).
@@ -303,6 +304,22 @@ parse_newlines(std::string_view const& str) {
 	}
 }
 
+///	@brief	Parses block comments.
+///	@param[in]	str		String.
+///	@return	Parsed newlines.
+///		The first of tuple is remaining string.
+///		The second of tuple is number of new lines.
+inline std::tuple<std::string_view, std::size_t>
+parse_block_comments(std::string_view const& str) {
+	if (! str.starts_with("/*")) {
+		return {str, 0u};
+	} else {
+		auto const s   = str.substr(2);
+		auto const end = s.find_first_of("*/");
+		return {s, end};
+	}
+}
+
 ///	@brief	Parses whitespaces.
 ///	@param[in]	str		String.
 ///	@return	Parsed whitespaces.
@@ -315,12 +332,12 @@ parse_whitespaces(std::string_view const& str) {
 
 	std::size_t newlines{};
 	svmatch		r;
-	if (auto const [s, lf] = parse_newlines(str); 0u < lf) {
-		tracer.trace(std::to_string(__LINE__) + " {newlines:" + std::to_string(newlines));
-		return {s, whitespace_t{lf}};
-	} else if (std::regex_match(str.cbegin(), str.cend(), r, def::block_comment_re)) {
-		newlines = std::ranges::count(r.str(1), '\n');
-		tracer.trace(std::to_string(__LINE__) + " " + r.str(1) + " " + std::to_string(newlines));
+	if (auto const [s1, lf1] = parse_newlines(str); 0u < lf1) {
+		tracer.trace(std::to_string(__LINE__) + " {newlines:" + std::to_string(lf1));
+		return {s1, whitespace_t{lf1}};
+	} else if (auto const [s2, lf2] = parse_block_comments(str); 0u < lf2) {
+		tracer.trace(std::to_string(__LINE__) + " {block comments:" + std::to_string(lf2));
+		return {s2, whitespace_t{lf2}};
 	} else if (std::regex_match(str.cbegin(), str.cend(), r, def::line_comment_re)) {
 		newlines = std::ranges::count(r.str(1), '\n');
 		tracer.trace(std::to_string(__LINE__) + " " + r.str(1) + " " + std::to_string(newlines));
