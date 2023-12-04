@@ -158,8 +158,9 @@ std::unordered_set<std::string_view> const keywords{
 // -----------------------------------
 // regex rules
 
-///	@brief	One or more new lines (LF+).
-std::regex const newline_re{R"(^(?:\r?\n)+.*)", std::regex_constants::multiline};
+//	@brief	One or more new lines (LF+).
+//	@note	VC++ does not support multiline.
+// std::regex const newline_re{R"(^(?:\r?\n)+.*)", std::regex_constants::multiline};
 ///	@brief	Escaped new line (@\LF).
 std::regex const escaped_newline_re{R"(\\\r?\n)"};
 ///	@brief	Single-line comment (//... LF+).
@@ -286,9 +287,24 @@ using token_t = std::variant<whitespace_t, preprocessing_token_t>;
 ///	@brief	Collection of tokens.
 using tokens_t = std::vector<token_t>;
 
+///	@brief	Parses newlines.
+///	@param[in]	str		String.
+///	@return	Parsed newlines.
+///		The first of tuple is remaining string.
+///		The second of tuple is number of new lines.
+inline std::tuple<std::string_view, std::size_t>
+parse_newlines(std::string_view const& str) {
+	if (auto const pos = str.find_first_not_of("\r\n"); pos == std::string_view::npos) {
+		return {std::string_view{}, 0u};
+	} else if (str.find("\r\r") != std::string_view::npos || str.at(pos - 1) == '\r') {
+		throw std::invalid_argument("unsupported single carridge return");
+	} else {
+		return {str.substr(pos), std::ranges::count(str, '\n')};
+	}
+}
+
 ///	@brief	Parses whitespaces.
 ///	@param[in]	str		String.
-///	@param[in]	ws		Whitespace if exists.
 ///	@return	Parsed whitespaces.
 ///		The first of tuple is remaining string.
 ///		The second of tuple is parsed whitespace if exists.
@@ -299,9 +315,9 @@ parse_whitespaces(std::string_view const& str) {
 
 	std::size_t newlines{};
 	svmatch		r;
-	if (std::regex_match(str.cbegin(), str.cend(), r, def::newline_re)) {
-		newlines += r.size() - 1;
-		tracer.trace(std::to_string(__LINE__) + " " + r.str(1) + " " + std::to_string(newlines));
+	if (auto const [s, lf] = parse_newlines(str); 0u < lf) {
+		tracer.trace(std::to_string(__LINE__) + " {newlines:" + std::to_string(newlines));
+		return {s, whitespace_t{lf}};
 	} else if (std::regex_match(str.cbegin(), str.cend(), r, def::block_comment_re)) {
 		newlines = std::ranges::count(r.str(1), '\n');
 		tracer.trace(std::to_string(__LINE__) + " " + r.str(1) + " " + std::to_string(newlines));
