@@ -6,6 +6,7 @@
 // ===========================================================================
 
 // Includes local headers.
+#include "lexer.hpp"
 #include "utility.hpp"
 
 // Includes standard headers.
@@ -221,6 +222,8 @@ main(int ac, char* av[]) {
 		{
 			auto const started = std::chrono::steady_clock::now();
 
+			// TODO:
+			std::ranges::for_each(paths, [](auto const& a) { auto const tokens = xxx::xcp::lex::scan(a); });
 			// TODO:
 
 			auto const ended = std::chrono::steady_clock::now();

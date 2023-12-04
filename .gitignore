@@ -32,7 +32,8 @@
 *.app
 
 # cmake
-./build/**
+/build/**
 
 # doxygen
-./html/**
+/html/**
+/.vscode/
