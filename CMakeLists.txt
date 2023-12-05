@@ -40,7 +40,7 @@ add_executable(xcp
 	lexer.hpp
 )
 target_include_directories(xcp	PRIVATE .)
-if(MSVC)
+if(CMAKE_CXX_COMPILER_ID EQUAL MSVC)
 	target_compile_definitions(xcp	PUBLIC	_CRT_SECURE_NO_WARNINGS)
 endif()
 if(POSIX)
@@ -53,14 +53,13 @@ endif()
 target_link_libraries(xcp	${CMAKE_THREAD_LIBS_INIT})
 
 if(GTest_FOUND)
-
-add_executable(xcp_ut
-	ut_lexer.cpp
-	utility.hpp
-	lexer.hpp
-)
-target_link_libraries(xcp_ut	GTest::gtest_main GTest::gtest)
-add_test(xcp_ut
-	COMMAND ./xcp_ut
-)
+	add_executable(xcp_ut
+		ut_lexer.cpp
+		utility.hpp
+		lexer.hpp
+	)
+	target_link_libraries(xcp_ut	GTest::gtest_main GTest::gtest)
+	add_test(xcp_ut
+		COMMAND ./xcp_ut
+	)
 endif()
